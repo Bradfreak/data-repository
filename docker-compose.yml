@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+  sql_server:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      SA_PASSWORD: "admin_001@EHR"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    networks:
+      - data_pipeline_network
+    volumes:
+      - ./sql_scripts:/docker-entrypoint-initdb.d
+      - mssql_data:/var/opt/mssql
+
+  postgresql:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: "Holmusk_Data_Lake"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin_001@Holmusk"
+    ports:
+      - "5432:5432"
+    networks:
+      - data_pipeline_network
+    volumes:
+      - ./postgresql:/docker-entrypoint-initdb.d 
+      - postgres_data:/var/lib/postgresql/data
+
+networks:
+  data_pipeline_network:
+    driver: bridge
+
+volumes:
+  mssql_data:
+  postgres_data:
