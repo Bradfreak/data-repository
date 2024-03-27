@@ -7,10 +7,10 @@ import logging
 logging.basicConfig(filename='etl.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # SQL Server connection parameters
-SQL_SERVER_CONNECTION_STRING = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=172.19.0.2;DATABASE=EHR_Healthcare_Data;UID=sa;PWD=admin_001@EHR'
+SQL_SERVER_CONNECTION_STRING = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=172.19.0.3;DATABASE=EHR_Healthcare_Data;UID=sa;PWD=admin_001@EHR'
 
 # PostgreSQL connection parameters
-POSTGRESQL_CONNECTION_STRING = "dbname='Holmusk_Data_Lake' user='admin' host='localhost' password='admin_001@Holmusk' port='5432'"
+POSTGRESQL_CONNECTION_STRING = "dbname='Holmusk_Data_Lake' user='admin' host='172.19.0.2' password='admin_001@Holmusk' port='5432'"
 
 def extract_patients(cursor, batch_size=1000):
     patients = []
