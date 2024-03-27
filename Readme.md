@@ -1,6 +1,3 @@
-Certainly! Here's the raw text formatted for a Markdown file:
-
-```markdown
 # Data Pipeline Documentation
 
 ## Overview
@@ -90,6 +87,3 @@ Initialization scripts (`postgres_init.sql` and `sql_server_init.sql`) define th
 ## Conclusion
 
 The enhanced data pipeline provides a robust and reliable mechanism for transferring data from Microsoft SQL Server to PostgreSQL. By following the provided documentation, users can set up, execute, and test the pipeline effectively. The addition of comprehensive error handling mechanisms ensures resilience and facilitates troubleshooting, addressing a previous drawback of the pipeline.
-```
-
-You can save this text into a `.md` file and it will render properly when viewed in Markdown-supported editors or platforms. Let me know if you need any further assistance!
