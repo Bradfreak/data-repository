@@ -88,15 +88,10 @@ Initialization scripts (`postgresql/init.sql` and `sqlserver/init.sql`) define t
 
 2. Optionally, delete the cloned repository from your system.
 
-## Drawbacks and Enhancements
+## Drawbacks
 
-### Drawbacks
-
-- Lack of error handling: Previous versions of the pipeline lacked comprehensive error handling, potentially leading to unexpected failures during data transfer.
-
-### Enhancements
-
-- **Enhanced Error Handling:** Error handling mechanisms have been implemented throughout the ETL process to catch and handle exceptions gracefully. Detailed error messages are logged to facilitate troubleshooting and analysis.
+- Limited scalability: While the use of multiprocessing improves performance, the pipeline may face scalability issues with very large datasets due to resource constraints.
+- Dependency on external tools: The pipeline relies on Docker, Python, and database-specific drivers, increasing complexity and potential compatibility issues.
 
 ## Conclusion
 
