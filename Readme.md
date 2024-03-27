@@ -1,6 +1,3 @@
-Certainly! Here's the raw text formatted for a Markdown file:
-
-```markdown
 # Data Pipeline Documentation
 
 ## Overview
@@ -23,7 +20,7 @@ The `test_etl_application.py` script contains unit tests for the ETL functions d
 
 ### Initialization Scripts
 
-Initialization scripts (`postgres_init.sql` and `sql_server_init.sql`) define the schema for PostgreSQL and SQL Server databases, respectively. These scripts are mounted into the corresponding Docker containers to set up the database schema during container initialization.
+Initialization scripts (`postgresql/init.sql` and `sqlserver/init.sql`) define the schema for PostgreSQL and SQL Server databases, respectively. These scripts are mounted into the corresponding Docker containers to set up the database schema during container initialization.
 
 ## Usage
 
@@ -46,14 +43,19 @@ Initialization scripts (`postgres_init.sql` and `sql_server_init.sql`) define th
    ```bash
    docker-compose up -d
    ```
+4. Once the containers are up and running, run the following command to setup the database and tables in SQL server:
 
-4. Once the containers are up and running, execute the ETL process by running the following command:
+    ```bash
+    docker exec -it data-repository_sql_server_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "admin_001@EHR" -i /docker-entrypoint-initdb.d/init.sql
+    ```
+
+5. Once the tables are setup, execute the ETL process by running the following command:
 
    ```bash
    python etl_application.py
    ```
 
-5. Monitor the console for any errors or status messages regarding the data transfer process. Additionally, detailed error messages are logged to `etl.log` for further analysis.
+6. Monitor the console for any errors or status messages regarding the data transfer process. Additionally, detailed error messages are logged to `etl.log` for further analysis.
 
 ### Unit Testing
 
@@ -90,6 +92,3 @@ Initialization scripts (`postgres_init.sql` and `sql_server_init.sql`) define th
 ## Conclusion
 
 The enhanced data pipeline provides a robust and reliable mechanism for transferring data from Microsoft SQL Server to PostgreSQL. By following the provided documentation, users can set up, execute, and test the pipeline effectively. The addition of comprehensive error handling mechanisms ensures resilience and facilitates troubleshooting, addressing a previous drawback of the pipeline.
-```
-
-You can save this text into a `.md` file and it will render properly when viewed in Markdown-supported editors or platforms. Let me know if you need any further assistance!
