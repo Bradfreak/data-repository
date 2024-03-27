@@ -20,7 +20,7 @@ The `test_etl_application.py` script contains unit tests for the ETL functions d
 
 ### Initialization Scripts
 
-Initialization scripts (`postgres_init.sql` and `sql_server_init.sql`) define the schema for PostgreSQL and SQL Server databases, respectively. These scripts are mounted into the corresponding Docker containers to set up the database schema during container initialization.
+Initialization scripts (`postgresql/init.sql` and `sqlserver/init.sql`) define the schema for PostgreSQL and SQL Server databases, respectively. These scripts are mounted into the corresponding Docker containers to set up the database schema during container initialization.
 
 ## Usage
 
@@ -43,14 +43,28 @@ Initialization scripts (`postgres_init.sql` and `sql_server_init.sql`) define th
    ```bash
    docker-compose up -d
    ```
+4. Once the containers are up and running, run the following command to setup the database and tables in SQL server:
 
-4. Once the containers are up and running, execute the ETL process by running the following command:
+    ```bash
+    docker exec -it data-repository_sql_server_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "admin_001@EHR" -i /docker-entrypoint-initdb.d/init.sql
+    ```
+
+5. Once the tables are setup, get the IP address of the SQL server and Postgres Sql containers and replace them in the as host in the connection strings. The following commands will give the IP addresses:
+    ```bash
+    docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' data-repository_sql_server_1
+    ```
+    ```bash
+    docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' data-repository_postgresql_1
+
+    ```
+
+6. Now execute the ETL process by running the following command:
 
    ```bash
    python etl_application.py
    ```
 
-5. Monitor the console for any errors or status messages regarding the data transfer process. Additionally, detailed error messages are logged to `etl.log` for further analysis.
+7. Monitor the console for any errors or status messages regarding the data transfer process. Additionally, detailed error messages are logged to `etl.log` for further analysis.
 
 ### Unit Testing
 

@@ -1,37 +1,20 @@
-CREATE DATABASE EHR_Healthcare_Data;
-
-USE EHR_Healthcare_Data;
-
--- Create table for Patients
-CREATE TABLE dbo.patient (
-    patient_id BIGINT PRIMARY KEY,
-    patient_name VARCHAR(500) NOT NULL
+CREATE TABLE public.patient (
+ patient_id TEXT NOT NULL PRIMARY KEY,
+ patient_name TEXT NOT NULL,
+provider_ids TEXT []
 );
 
--- Create table for Providers
-CREATE TABLE dbo.providers (
-    provider_id BIGINT PRIMARY KEY,
-    provider_name VARCHAR(500) NOT NULL,
-    provider_type VARCHAR(500)
+CREATE TABLE public.provider (
+ provider_id TEXT NOT NULL PRIMARY KEY,
+ provider_name TEXT NOT NULL
 );
 
--- Create table for Patient-Provider Relationships
-CREATE TABLE dbo.patient_provider_relationship (
-    patient_id BIGINT,
-    provider_id BIGINT,
-    FOREIGN KEY (patient_id) REFERENCES dbo.patient(patient_id),
-    FOREIGN KEY (provider_id) REFERENCES dbo.providers(provider_id)
-);
-
--- Create table for Patient Events
-CREATE TABLE dbo.patient_events (
-    event_id BIGINT PRIMARY KEY,
-    patient_id BIGINT,
-    provider_id BIGINT,
-    start_date DATETIME,
-    end_date DATETIME,
-    event_type VARCHAR(100),
-    provider_notes VARCHAR(100),
-    FOREIGN KEY (patient_id) REFERENCES dbo.patient(patient_id),
-    FOREIGN KEY (provider_id) REFERENCES dbo.providers(provider_id)
+CREATE TABLE public.patient_events (
+event_id BIGINT NOT NULL PRIMARY KEY,
+patient_id BIGINT NOT NULL,
+provider_id BIGINT NOT NULL,
+ start_date TIMESTAMPTZ NOT NULL,
+ end_date TIMESTAMPTZ,
+ event_type TEXT NOT NULL,
+ provider_notes TEXT
 );

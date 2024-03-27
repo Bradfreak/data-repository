@@ -1,12 +1,16 @@
 import pyodbc
 import psycopg2
 import multiprocessing
+import logging
+
+# Configure logging
+logging.basicConfig(filename='etl.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # SQL Server connection parameters
-SQL_SERVER_CONNECTION_STRING = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=172.19.0.2;DATABASE=EHR_Healthcare_Data;UID=sa;PWD=admin_001@EHR'
+SQL_SERVER_CONNECTION_STRING = 'DRIVER={ODBC Driver 17 for SQL Server};SERVER=172.19.0.3;DATABASE=EHR_Healthcare_Data;UID=sa;PWD=admin_001@EHR'
 
 # PostgreSQL connection parameters
-POSTGRESQL_CONNECTION_STRING = "dbname='Holmusk_Data_Lake' user='admin' host='localhost' password='admin_001@Holmusk' port='5432'"
+POSTGRESQL_CONNECTION_STRING = "dbname='Holmusk_Data_Lake' user='admin' host='172.19.0.2' password='admin_001@Holmusk' port='5432'"
 
 def extract_patients(cursor, batch_size=1000):
     patients = []
@@ -18,7 +22,7 @@ def extract_patients(cursor, batch_size=1000):
                 break
             patients.extend(batch)
     except Exception as e:
-        print("Error occurred during extraction of patients:", str(e))
+        logging.error("Error occurred during extraction of patients: %s", str(e))
     return patients
 
 def extract_providers(cursor, batch_size=1000):
@@ -31,7 +35,7 @@ def extract_providers(cursor, batch_size=1000):
                 break
             providers.extend(batch)
     except Exception as e:
-        print("Error occurred during extraction of providers:", str(e))
+        logging.error("Error occurred during extraction of providers: %s", str(e))
     return providers
 
 def extract_relationships(cursor, batch_size=1000):
@@ -44,7 +48,7 @@ def extract_relationships(cursor, batch_size=1000):
                 break
             relationships.extend(batch)
     except Exception as e:
-        print("Error occurred during extraction of relationships:", str(e))
+        logging.error("Error occurred during extraction of relationships: %s", str(e))
     return relationships
 
 def extract_events(cursor, batch_size=1000):
@@ -57,7 +61,7 @@ def extract_events(cursor, batch_size=1000):
                 break
             events.extend(batch)
     except Exception as e:
-        print("Error occurred during extraction of events:", str(e))
+        logging.error("Error occurred during extraction of events: %s", str(e))
     return events
 
 def transform_data(patients, providers, relationships, events):
@@ -79,28 +83,36 @@ def transform_data(patients, providers, relationships, events):
 
     return transformed_patients, transformed_providers, transformed_relationships, transformed_events
 
-def load_to_postgresql(data):
+def load_to_postgresql(data, batch_size=1000):
     patients, providers, relationships, events = data
     try:
         conn = psycopg2.connect(POSTGRESQL_CONNECTION_STRING)
         cursor = conn.cursor()
 
-        # Load patients
-        cursor.executemany("INSERT INTO public.patient (patient_id, patient_name) VALUES (%s, %s)", patients)
+        # Load patients in batches
+        for i in range(0, len(patients), batch_size):
+            batch = patients[i:i+batch_size]
+            cursor.executemany("INSERT INTO public.patient (patient_id, patient_name) VALUES (%s, %s)", batch)
 
-        # Load providers
-        cursor.executemany("INSERT INTO public.providers (provider_id, provider_name) VALUES (%s, %s)", providers)
+        # Load providers in batches
+        for i in range(0, len(providers), batch_size):
+            batch = providers[i:i+batch_size]
+            cursor.executemany("INSERT INTO public.providers (provider_id, provider_name) VALUES (%s, %s)", batch)
 
-        # Load patient-provider relationships
-        cursor.executemany("INSERT INTO public.patient_provider (patient_id, provider_ids) VALUES (%s, %s)", relationships)
+        # Load patient-provider relationships in batches
+        for i in range(0, len(relationships), batch_size):
+            batch = relationships[i:i+batch_size]
+            cursor.executemany("INSERT INTO public.patient_provider (patient_id, provider_ids) VALUES (%s, %s)", batch)
 
-        # Load patient events
-        cursor.executemany("INSERT INTO public.patient_events (event_id, patient_id, provider_id, start_date, end_date, event_type, provider_notes) VALUES (%s, %s, %s, %s, %s, %s, %s)", events)
+        # Load patient events in batches
+        for i in range(0, len(events), batch_size):
+            batch = events[i:i+batch_size]
+            cursor.executemany("INSERT INTO public.patient_events (event_id, patient_id, provider_id, start_date, end_date, event_type, provider_notes) VALUES (%s, %s, %s, %s, %s, %s, %s)", batch)
 
         conn.commit()
-        print("Data loaded successfully to PostgreSQL.")
+        logging.info("Data loaded successfully to PostgreSQL.")
     except Exception as e:
-        print("Error occurred during loading to PostgreSQL:", str(e))
+        logging.error("Error occurred during loading to PostgreSQL: %s", str(e))
         conn.rollback()
     finally:
         cursor.close()
@@ -112,6 +124,7 @@ def parallel_transform(data_chunks):
     return transformed_data
 
 def run_data_extraction():
+    patients, providers, relationships, events = None, None, None, None
     try:
         conn = pyodbc.connect(SQL_SERVER_CONNECTION_STRING)
         cursor = conn.cursor()
@@ -125,20 +138,28 @@ def run_data_extraction():
         # Extract patient events
         events = extract_events(cursor)
 
-        return patients, providers, relationships, events
-
+    except Exception as e:
+        logging.error("An error occurred during data extraction: %s", str(e))
     finally:
         cursor.close()
         conn.close()
+        return patients, providers, relationships, events
 
 def run_data_transformation(patients, providers, relationships, events):
-    data_chunks = [(patients, providers, relationships, events)]
-    transformed_data = parallel_transform(data_chunks)
+    transformed_data = None
+    try:
+        data_chunks = [(patients, providers, relationships, events)]
+        transformed_data = parallel_transform(data_chunks)
+    except Exception as e:
+        logging.error("An error occurred during data transformation: %s", str(e))
     return transformed_data
 
 if __name__ == "__main__":
-    patients, providers, relationships, events = run_data_extraction()
-    if patients and providers and relationships and events:
-        transformed_data = run_data_transformation(patients, providers, relationships, events)
-        for data in transformed_data:
-            load_to_postgresql(data)
+    try:
+        patients, providers, relationships, events = run_data_extraction()
+        if patients and providers and relationships and events:
+            transformed_data = run_data_transformation(patients, providers, relationships, events)
+            for data in transformed_data:
+                load_to_postgresql(data)
+    except Exception as e:
+        logging.error("An unexpected error occurred: %s", str(e))

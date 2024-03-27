@@ -11,7 +11,7 @@ services:
     networks:
       - data_pipeline_network
     volumes:
-      - ./sql_scripts:/docker-entrypoint-initdb.d
+      - ./sqlserver:/docker-entrypoint-initdb.d
       - mssql_data:/var/opt/mssql
 
   postgresql:
