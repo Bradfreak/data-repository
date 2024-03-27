@@ -49,9 +49,11 @@ Initialization scripts (`postgresql/init.sql` and `sqlserver/init.sql`) define t
     docker exec -it data-repository_sql_server_1 /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "admin_001@EHR" -i /docker-entrypoint-initdb.d/init.sql
     ```
 
-5. Once the tables are setup, get the IP address of the SQL server and Postgres Sql containers and replace them in the Connection strings. The following commands will give the IP addresses:
+5. Once the tables are setup, get the IP address of the SQL server and Postgres Sql containers and replace them in the as host in the connection strings. The following commands will give the IP addresses:
     ```bash
     docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' data-repository_sql_server_1
+    ```
+    ```bash
     docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' data-repository_postgresql_1
 
     ```
